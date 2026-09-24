@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Álbum Coletivo — junte as fotos da festa | Funciona com internet ruim</title>
+<meta name="description" content="Crie um álbum coletivo e junte as fotos de todos os convidados da festa num lugar só. Funciona mesmo com internet ruim: a foto entra na fila e sobe sozinha." />
+<meta name="theme-color" content="#0f1020" />
+<link rel="manifest" href="manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0f1020; --bg2:#181a33; --ink:#f3f2fb; --muted:#a8a6c8;
+    --accent:#6c5ce7; --accent2:#a66cff; --card:#1c1e3a; --line:#2c2e52;
+    --ok:#39d98a; --warn:#ffcb5c; --wait:#7aa2ff;
+    --shadow:0 12px 34px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(1100px 560px at 80% -10%,var(--bg2),transparent),var(--bg);
+    min-height:100vh;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:600;line-height:1.06}
+  a{color:inherit}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 18px}
+  .btn{border:none;border-radius:999px;padding:14px 22px;font-weight:600;font-size:15px;cursor:pointer;
+    transition:transform .12s ease,box-shadow .12s ease,opacity .2s;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 22px rgba(108,92,231,.45)}
+  .btn-ghost{background:#20224180;color:var(--ink);border:1px solid var(--line)}
+  .btn-sm{padding:10px 16px;font-size:14px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces';font-weight:700;font-size:20px;cursor:pointer}
+  .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:grid;place-items:center;color:#fff;font-size:17px;box-shadow:0 6px 14px rgba(108,92,231,.5)}
+  .hero{text-align:center;padding:26px 0 6px}
+  .hero h1{font-size:clamp(30px,6vw,52px);margin:0 0 14px}
+  .hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent2),#ff9de2);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:clamp(15px,2.4vw,19px);color:var(--muted);max-width:600px;margin:0 auto 22px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}
+  .field{margin-bottom:14px;text-align:left}
+  .field label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+  .field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+    font-family:inherit;font-size:16px;background:#12142b;color:var(--ink)}
+  .create-box{max-width:480px;margin:14px auto 0}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:34px 0 10px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .step .n{width:28px;height:28px;border-radius:8px;background:#2a2c52;display:grid;place-items:center;font-weight:700;margin-bottom:8px}
+  .step h3{margin:0 0 4px;font-size:17px}
+  .step p{margin:0;color:var(--muted);font-size:13.5px}
+  @media(max-width:660px){.steps{grid-template-columns:1fr}}
+  /* álbum */
+  .album-head{text-align:center;padding:22px 0 6px}
+  .album-head h1{font-size:clamp(26px,5vw,42px);margin:0 0 4px}
+  .album-head .sub{color:var(--muted);margin:0}
+  .addbar{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg),rgba(15,16,32,.86));
+    backdrop-filter:blur(6px);padding:12px 0;margin-top:8px}
+  .addrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .status{max-width:640px;margin:10px auto 0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:13px}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:#20224180;border:1px solid var(--line);
+    border-radius:999px;padding:6px 12px;color:var(--muted)}
+  .pill b{color:var(--ink)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .dot.ok{background:var(--ok)} .dot.up{background:var(--wait)} .dot.q{background:var(--warn)}
+  .banner{max-width:640px;margin:10px auto 0;background:#2a1f10;border:1px solid #5a4420;color:#ffd98a;
+    border-radius:14px;padding:10px 14px;font-size:13.5px;text-align:center;display:none}
+  .banner.show{display:block}
+  .grid{columns:3 200px;column-gap:12px;padding:16px 0 60px}
+  .ph{position:relative;break-inside:avoid;margin:0 0 12px;border-radius:14px;overflow:hidden;background:#12142b;border:1px solid var(--line)}
+  .ph img{width:100%;display:block}
+  .ph .badge{position:absolute;top:8px;left:8px;display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;font-weight:600;padding:4px 9px;border-radius:999px;color:#fff;backdrop-filter:blur(4px)}
+  .b-ok{background:rgba(57,217,138,.85)} .b-up{background:rgba(122,162,255,.9)} .b-q{background:rgba(255,203,92,.92);color:#3a2b00}
+  .ph.pending img{filter:saturate(.85) brightness(.92)}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:30px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .25s;z-index:80}
+  .toast.show{opacity:1}
+  .devbar{max-width:640px;margin:12px auto 0;text-align:center}
+  .toggle{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;
+    background:#181a33;border:1px dashed var(--line);border-radius:999px;padding:7px 14px}
+  .toggle input{margin:0}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;padding:24px 0 40px}
+  .share-row{display:flex;gap:8px;max-width:440px;margin:12px auto 0}
+  .share-row input{flex:1;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:13px;background:#12142b;color:var(--ink)}
+  /* modais */
+  .modal-bg{position:fixed;inset:0;background:rgba(6,6,16,.62);backdrop-filter:blur(3px);display:none;place-items:center;z-index:60;padding:18px}
+  .modal-bg.open{display:grid}
+  .modal{background:var(--card);border:1px solid var(--line);border-radius:20px;max-width:440px;width:100%;padding:24px;box-shadow:0 30px 70px rgba(0,0,0,.5);animation:pop .18s ease}
+  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal h2{margin:0 0 6px;font-size:23px}
+  .modal .sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+  .close{float:right;cursor:pointer;color:var(--muted);font-size:24px;line-height:1;border:none;background:none}
+  .price{display:flex;align-items:baseline;gap:8px;margin:6px 0 16px}
+  .price .big{font-family:'Fraunces';font-size:38px;font-weight:700}
+  .perk{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:14.5px;text-align:left}
+  .perk .ck{color:var(--ok);font-weight:700}
+  #qrBox img,#qrBox canvas{border-radius:12px;background:#fff;padding:10px}
+  .del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:13px;cursor:pointer;z-index:3}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div class="brand" onclick="go('')"><span class="logo">📸</span> Álbum Coletivo</div>
+    <button class="btn btn-ghost btn-sm" onclick="go('')">Criar álbum</button>
+  </nav>
+</div>
+<div id="app"></div>
+
+<input type="file" id="filePick" accept="image/*" multiple style="display:none" />
+<input type="file" id="fileCam" accept="image/*" capture="environment" style="display:none" />
+<div class="toast" id="toast"></div>
+
+<!-- MODAL: paywall (organizador baixa tudo em alta) -->
+<div class="modal-bg" id="mPay">
+  <div class="modal">
+    <button class="close" onclick="closeModal('mPay')">&times;</button>
+    <h2>Baixe o álbum inteiro em alta 💎</h2>
+    <p class="sub">Juntar as fotos é grátis. Pague uma vez pra baixar <b>todas as fotos originais</b> (alta resolução), manter o álbum <b>pra sempre</b> e tirar a marca.</p>
+    <div class="price"><span class="big">R$39</span><span style="color:var(--muted)">pagamento único</span></div>
+    <div class="perk"><span class="ck">✓</span> <b>Todas as fotos em alta</b> — as originais de cada convidado, sem compressão</div>
+    <div class="perk"><span class="ck">✓</span> <b>Álbum permanente</b> — não expira</div>
+    <div class="perk"><span class="ck">✓</span> Sem marca d'água</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="startPay()">Baixar tudo em alta — R$39</button>
+    <p class="sub" style="text-align:center;margin:12px 0 0;font-size:12.5px">🔒 Pagamento seguro via Mercado Pago (Pix ou cartão)</p>
+  </div>
+</div>
+
+<!-- MODAL: QR + compartilhar -->
+<div class="modal-bg" id="mShare">
+  <div class="modal" style="text-align:center">
+    <button class="close" onclick="closeModal('mShare')">&times;</button>
+    <h2>Chame a galera 🎉</h2>
+    <p class="sub">Ponha o QR na mesa da festa e mande o link no grupo. Cada convidado sobe as fotos dele.</p>
+    <div id="qrBox" style="display:flex;justify-content:center;margin:8px 0 14px"></div>
+    <a class="btn btn-primary" style="width:100%;display:block;text-decoration:none;box-sizing:border-box" href="#" onclick="return shareWhatsApp()">📲 Convidar pelo WhatsApp</a>
+    <div class="share-row"><input id="shareUrl" readonly /><button class="btn btn-ghost btn-sm" onclick="copyShare()">Copiar</button></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="baixarQR()">⬇️ Baixar o QR pra imprimir</button>
+  </div>
+</div>
+
+<!-- MODAL: download em alta (pós-desbloqueio) -->
+<div class="modal-bg" id="mDown">
+  <div class="modal" style="text-align:center">
+    <button class="close" onclick="closeModal('mDown')">&times;</button>
+    <h2>Álbum desbloqueado 💎</h2>
+    <p class="sub" id="downSub">Baixando as fotos originais em alta…</p>
+    <div id="downProg" style="font-size:14px;color:var(--muted);margin:6px 0 14px"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="baixarTodas()">⬇️ Baixar todas em alta</button>
+  </div>
+</div>
+
+<script src="qrcode.min.js"></script>
+<script src="album-queue.js"></script>
+<script>
+/* ================= helpers ================= */
+var Q = self.AlbumQueue;
+/* funil próprio (Supabase album_eventos) — não trava a UI se falhar */
+function track(e,d){try{fetch(Q.SB_URL+'/rest/v1/album_eventos',{method:'POST',headers:Object.assign({},Q.SB_H,{'Content-Type':'application/json'}),body:JSON.stringify({evento:e,slug:(d&&(d.album||d.slug))||(ALBUM&&ALBUM.slug)||null,meta:d||null})}).catch(function(){});}catch(_){}}
+function uid(){return Math.random().toString(36).slice(2,8)}
+function uuid(){try{return crypto.randomUUID()}catch(_){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c=='x'?r:(r&0x3|0x8);return v.toString(16)})}}
+function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function el(id){return document.getElementById(id)}
+function openModal(id){var m=el(id);if(m)m.classList.add('open')}
+function closeModal(id){var m=el(id);if(m)m.classList.remove('open')}
+function pubUrl(path){return Q.SB_URL+'/storage/v1/object/public/'+Q.BUCKET+'/'+path}
+var toastT;
+function toast(m){var t=el('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('show')},2400)}
+
+/* ---------- Supabase (via anon) ---------- */
+function sbGet(path){return fetch(Q.SB_URL+'/rest/v1/'+path,{headers:Q.SB_H}).then(function(r){return r.ok?r.json():[]})}
+function apiCreateAlbum(o){
+  return fetch(Q.SB_URL+'/rest/v1/album_albuns',{method:'POST',headers:Object.assign({},Q.SB_H,{'Content-Type':'application/json'}),
+    body:JSON.stringify({slug:o.slug,title:o.title,host_name:o.host,admin_key:o.adminKey})}).then(function(r){if(!r.ok)throw new Error('create '+r.status);return true});
+}
+function apiGetAlbum(slug){
+  return sbGet('album_albuns?slug=eq.'+encodeURIComponent(slug)+'&select=id,slug,title,host_name,unlocked,created_at').then(function(rows){
+    if(!rows.length)return null;var a=rows[0];
+    return sbGet('album_fotos?album_id=eq.'+a.id+'&select=id,storage_path,preview_path,created_at&order=created_at.desc').then(function(fs){a.fotos=fs||[];return a});
+  });
+}
+
+/* ---------- compressão do preview (canvas) ---------- */
+function makePreview(file,maxDim,quality){
+  return new Promise(function(res){
+    var url=URL.createObjectURL(file);var img=new Image();
+    img.onload=function(){
+      var w=img.naturalWidth,h=img.naturalHeight,s=Math.min(1,maxDim/Math.max(w,h));
+      var cw=Math.max(1,Math.round(w*s)),ch=Math.max(1,Math.round(h*s));
+      var c=document.createElement('canvas');c.width=cw;c.height=ch;
+      c.getContext('2d').drawImage(img,0,0,cw,ch);
+      c.toBlob(function(blob){URL.revokeObjectURL(url);res({blob:blob,w:w,h:h})},'image/jpeg',quality||0.72);
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);res({blob:null,w:0,h:0})}; // ex.: HEIC -> sem preview
+    img.src=url;
+  });
+}
+
+/* ================= estado / rota ================= */
+var ROUTE=null, ALBUM=null, ADMINKEY=null;
+function setRoute(h){h=h||'';var m=h.match(/a=([a-z0-9]+)/i);ROUTE=m?m[1]:null;var k=h.match(/[?&]k=([^&]+)/);ADMINKEY=k?decodeURIComponent(k[1]):null}
+function go(hash){setRoute(hash);try{location.hash=hash}catch(_){}render();window.scrollTo(0,0)}
+function localKey(slug){return 'album_admin_'+slug}
+function adminKeyFor(slug){if(ADMINKEY)return ADMINKEY;try{return localStorage.getItem(localKey(slug))||'';}catch(_){return '';}}
+function isOrganizer(){return !!(ALBUM&&adminKeyFor(ALBUM.slug))}
+
+/* ================= render ================= */
+function render(){ if(ROUTE){renderAlbum(ROUTE)} else {renderHome()} }
+
+function renderHome(){
+  el('app').innerHTML=''+
+  '<div class="wrap">'+
+    '<section class="hero">'+
+      '<h1>Junte as fotos de <em>todo mundo</em><br>numa festa só</h1>'+
+      '<p>Cada convidado abre o link, manda as fotos e elas entram num álbum coletivo. Funciona mesmo com o Wi-Fi da festa ruim — a foto entra na fila e sobe sozinha.</p>'+
+    '</section>'+
+    '<div class="steps">'+
+      '<div class="step"><div class="n">1</div><h3>Crie o álbum</h3><p>Diga o nome da festa. Leva 20 segundos.</p></div>'+
+      '<div class="step"><div class="n">2</div><h3>Espalhe o link / QR</h3><p>Na mesa, no grupo. Cada convidado sobe as fotos dele.</p></div>'+
+      '<div class="step"><div class="n">3</div><h3>Tudo num lugar só</h3><p>As fotos da festa inteira, em alta, sem se perder no WhatsApp.</p></div>'+
+    '</div>'+
+    '<div class="panel create-box">'+
+      '<h2 style="margin:0 0 4px;font-size:24px">Criar meu álbum</h2>'+
+      '<p style="color:var(--muted);margin:0 0 16px;font-size:14px">Grátis pra começar.</p>'+
+      '<div class="field"><label>Nome da festa</label><input id="aTitle" placeholder="Ex: Casamento Ana &amp; João" /></div>'+
+      '<div class="field"><label>Seu nome (organizador)</label><input id="aHost" placeholder="Quem está organizando" /></div>'+
+      '<button id="createBtn" class="btn btn-primary" style="width:100%" onclick="createAlbum()">Criar álbum 📸</button>'+
+    '</div>'+
+    '<footer>Álbum Coletivo — prova de conceito · upload resiliente com internet ruim</footer>'+
+  '</div>';
+}
+
+async function createAlbum(){
+  var title=el('aTitle').value.trim(), host=el('aHost').value.trim();
+  if(!title){toast('Dê um nome pra festa 🙂');return}
+  var slug=uid(), adminKey=uuid(), btn=el('createBtn');
+  btn.disabled=true;btn.textContent='Criando...';
+  try{await apiCreateAlbum({slug:slug,title:title,host:host,adminKey:adminKey});}
+  catch(e){btn.disabled=false;btn.textContent='Criar álbum 📸';toast('Não consegui criar agora 😬');return;}
+  try{localStorage.setItem(localKey(slug),adminKey);}catch(_){}
+  track('album_created',{slug:slug});
+  go('a='+slug);
+  setTimeout(function(){shareAlbum();},400); // já mostra o QR/link pro organizador espalhar
+}
+
+async function renderAlbum(slug){
+  el('app').innerHTML='<div class="wrap"><div class="panel" style="max-width:440px;margin:50px auto;text-align:center"><p style="color:var(--muted)">Carregando o álbum...</p></div></div>';
+  var a=null;
+  try{a=await apiGetAlbum(slug);}catch(e){}
+  if(a===null && !navigator.onLine){ a={slug:slug,title:'Álbum',host_name:'',fotos:[],offline:true}; }
+  if(!a){el('app').innerHTML='<div class="wrap"><div class="panel" style="max-width:440px;margin:50px auto;text-align:center"><h2>Álbum não encontrado</h2><p style="color:var(--muted)">O link pode estar incorreto.</p><button class="btn btn-primary" onclick="go(\'\')">Criar um álbum</button></div></div>';return;}
+  ALBUM=a;
+  el('app').innerHTML=''+
+  '<div class="wrap">'+
+    '<section class="album-head">'+
+      '<h1>'+esc(a.title)+'</h1>'+
+      '<p class="sub" id="albSub">'+ (a.host_name?('por '+esc(a.host_name)+' • '):'') +'<span id="cntServer">'+(a.fotos.length)+'</span> foto(s) no álbum</p>'+
+    '</section>'+
+    '<div class="addbar"><div class="wrap">'+
+      '<div class="addrow">'+
+        '<button class="btn btn-primary" onclick="el(\'fileCam\').click()">📷 Tirar foto</button>'+
+        '<button class="btn btn-ghost" onclick="el(\'filePick\').click()">🖼️ Escolher fotos</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="shareAlbum()">Compartilhar</button>'+
+        (isOrganizer()?'<button class="btn btn-ghost btn-sm" onclick="baixarAlbum()">💎 Baixar tudo em alta</button>':'')+
+      '</div>'+
+      '<div class="status" id="statusRow"></div>'+
+      '<div class="banner" id="pendBanner"></div>'+
+      '<div class="devbar"><label class="toggle"><input type="checkbox" id="offSim" onchange="toggleOffline(this.checked)"> 🛜 Simular internet ruim (teste)</label></div>'+
+    '</div></div>'+
+    '<div class="grid" id="gallery"></div>'+
+    '<footer>Álbum Coletivo — as fotos ficam salvas no seu aparelho até subirem. Pode fechar e voltar.</footer>'+
+  '</div>';
+  el('offSim').checked=!!self.__albumOffline;
+  await paintGallery();
+  refreshStatus();
+  handleReturn(); // se voltou do Mercado Pago (?pago=ok), confirma e abre o download
+}
+
+/* ---------- galeria: servidor + pendentes locais ---------- */
+async function paintGallery(){
+  var g=el('gallery');if(!g)return;
+  var pending=[];
+  try{ pending=(await Q.listPending()).filter(function(r){return r.slug===ALBUM.slug}); }catch(_){}
+  pending.sort(function(x,y){return y.createdAt-x.createdAt});
+  var server=ALBUM.fotos||[];
+  var pendIds={};pending.forEach(function(r){pendIds[r.id]=1});
+  var html='';
+  pending.forEach(function(r){
+    var src=r.preview?URL.createObjectURL(r.preview):(r.master?URL.createObjectURL(r.master):'');
+    var st=r.masterDone?'up':(r.prevDone?'up':'q');
+    var lbl=r.prevDone?'subindo alta…':'na fila';
+    html+='<div class="ph pending"><img src="'+src+'" alt="">'+badge(st,lbl)+'</div>';
+  });
+  var org=isOrganizer();
+  server.forEach(function(f){
+    if(pendIds[f.id])return;
+    var path=f.preview_path||f.storage_path;
+    html+='<div class="ph">'+(org?'<button class="del" title="Remover foto" onclick="delFoto(\''+f.id+'\')">✕</button>':'')+'<img loading="lazy" src="'+pubUrl(path)+'" alt="">'+badge('ok','no ar')+'</div>';
+  });
+  if(!html)html='<div class="empty">Ainda sem fotos. Seja o primeiro a mandar 📸</div>';
+  g.innerHTML=html;
+}
+function badge(kind,text){
+  var cls=kind==='ok'?'b-ok':(kind==='up'?'b-up':'b-q');
+  var ic=kind==='ok'?'✓':(kind==='up'?'↑':'⏳');
+  return '<span class="badge '+cls+'">'+ic+' '+text+'</span>';
+}
+
+/* ---------- adicionar fotos ---------- */
+async function addFiles(files){
+  if(!ALBUM){return}
+  var albumId=ALBUM.id;
+  if(!albumId){ // offline na abertura: recupera o id quando possível; sem id não dá pra registrar, mas guardamos assim mesmo
+    try{var a=await apiGetAlbum(ALBUM.slug);if(a){ALBUM=a;albumId=a.id;}}catch(_){}
+  }
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    if(!file.type||file.type.indexOf('image/')!==0)continue;
+    var id=uuid();
+    var pv=await makePreview(file,1280,0.72);
+    await Q.enqueue({id:id,slug:ALBUM.slug,albumId:albumId,uploaderName:null,
+      master:file,masterType:file.type||'image/jpeg',preview:pv.blob,w:pv.w,h:pv.h,bytes:file.size});
+  }
+  track('foto_added',{slug:ALBUM.slug,n:files.length});
+  toast(files.length>1?(files.length+' fotos na fila 📸'):'Foto na fila 📸');
+  await paintGallery();
+  triggerPump();
+}
+el('filePick').addEventListener('change',function(e){if(e.target.files.length)addFiles(e.target.files);e.target.value='';});
+el('fileCam').addEventListener('change',function(e){if(e.target.files.length)addFiles(e.target.files);e.target.value='';});
+
+/* ---------- pump + sync ---------- */
+function triggerPump(){
+  Q.pump().then(function(){refreshStatus();});
+  try{ navigator.serviceWorker&&navigator.serviceWorker.ready.then(function(reg){
+    if(reg.sync){reg.sync.register('album-drain').catch(function(){});}
+    if(reg.active){reg.active.postMessage({type:'album-pump'});}
+  }); }catch(_){}
+}
+async function refreshStatus(){
+  var row=el('statusRow');if(!row)return;
+  var pend=[];try{pend=(await Q.listPending()).filter(function(r){return r.slug===ALBUM.slug});}catch(_){}
+  window.__albumPend=pend.length;
+  var uploading=pend.filter(function(r){return r.prevDone||r.attempts>0}).length;
+  var queued=pend.length-uploading;
+  var serverCount=(ALBUM.fotos||[]).length;
+  row.innerHTML=''+
+    '<span class="pill"><span class="dot ok"></span><b>'+serverCount+'</b> no ar</span>'+
+    (uploading?'<span class="pill"><span class="dot up"></span><b>'+uploading+'</b> subindo</span>':'')+
+    (queued>0?'<span class="pill"><span class="dot q"></span><b>'+queued+'</b> na fila</span>':'');
+  var banner=el('pendBanner');
+  if(pend.length>0){banner.classList.add('show');banner.innerHTML='⏳ <b>'+pend.length+' foto(s)</b> ainda subindo. Pode deixar a página aberta — elas sobem sozinhas quando a conexão firmar. Suas fotos estão salvas no aparelho.';}
+  else{banner.classList.remove('show');}
+}
+
+/* recarrega a lista do servidor de vez em quando (quando algo termina) */
+async function reloadServer(){
+  if(!ALBUM||!ALBUM.slug)return;
+  try{var a=await apiGetAlbum(ALBUM.slug);if(a){ALBUM.fotos=a.fotos;ALBUM.id=a.id;ALBUM.unlocked=a.unlocked;var c=el('cntServer');if(c)c.textContent=a.fotos.length;}}catch(_){}
+  await paintGallery();refreshStatus();
+}
+
+/* ---------- eventos ---------- */
+self.addEventListener('album-queue-changed',function(){reloadServer();});
+if(navigator.serviceWorker){navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='album-queue-changed')reloadServer();});}
+window.addEventListener('online',function(){toast('Conexão voltou — subindo as fotos 🚀');Q.retryNow().then(triggerPump);});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)triggerPump();});
+// aviso síncrono ao sair com pendências
+window.addEventListener('beforeunload',function(e){
+  if(window.__albumPend>0){e.preventDefault();e.returnValue='';return '';}
+});
+setInterval(function(){
+  if(!ALBUM)return;
+  Q.pendingCount().then(function(n){window.__albumPend=n;if(n>0)triggerPump();});
+},7000);
+
+function syncOfflineToSW(on){try{if(navigator.serviceWorker){navigator.serviceWorker.ready.then(function(reg){if(reg.active)reg.active.postMessage({type:'album-offline',on:on});});}}catch(_){}}
+function toggleOffline(on){self.__albumOffline=!!on;try{localStorage.setItem('__albumOffline',on?'1':'0');}catch(_){}syncOfflineToSW(!!on);toast(on?'Modo internet ruim LIGADO 🛜':'Internet ruim DESLIGADA — subindo 🚀');if(!on)Q.retryNow().then(triggerPump);}
+
+/* ---------- compartilhar + QR ---------- */
+function albumUrl(){return (location.origin&&location.origin!=='null')?(location.origin+location.pathname+'#a='+ALBUM.slug):('#a='+ALBUM.slug)}
+function shareAlbum(){
+  el('shareUrl').value=albumUrl();
+  var box=el('qrBox');box.innerHTML='';
+  try{new QRCode(box,{text:albumUrl(),width:180,height:180,correctLevel:QRCode.CorrectLevel.M});}catch(_){box.innerHTML='<p style="color:var(--muted);font-size:13px">QR indisponível</p>';}
+  openModal('mShare');
+}
+function waText(){var t=(ALBUM&&ALBUM.title)?ALBUM.title:'a festa';return 'Tô juntando as fotos de '+t+' num álbum só 📸 Manda as suas aqui (rápido, funciona até com internet ruim): '+albumUrl();}
+function shareWhatsApp(){try{track('share_whatsapp',{slug:ALBUM.slug});}catch(_){}window.open('https://wa.me/?text='+encodeURIComponent(waText()),'_blank');return false;}
+function copyShare(){var i=el('shareUrl');i.select();try{navigator.clipboard.writeText(i.value);}catch(_){document.execCommand('copy');}toast('Link copiado! 📋');}
+function baixarQR(){
+  var img=el('qrBox').querySelector('img')||el('qrBox').querySelector('canvas');
+  if(!img){toast('QR indisponível');return;}
+  var src=img.tagName==='IMG'?img.src:img.toDataURL('image/png');
+  var a=document.createElement('a');a.href=src;a.download='qr-album-'+ALBUM.slug+'.png';document.body.appendChild(a);a.click();a.remove();
+}
+
+/* ---------- paywall + download em alta ---------- */
+function baixarAlbum(){ if(ALBUM&&ALBUM.unlocked){openDownload();} else {track('paywall_view',{slug:ALBUM.slug});openModal('mPay');} }
+async function startPay(){
+  try{
+    var r=await fetch(Q.SB_URL+'/functions/v1/mp-preferencia-album',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:ALBUM.slug,titulo:ALBUM.title})});
+    var j=await r.json().catch(function(){return {};});
+    if(j&&j.ok&&j.init_point){track('checkout_open',{slug:ALBUM.slug});location.href=j.init_point;return;}
+    toast('Pagamento indisponível agora 😬 tente em instantes');
+  }catch(e){toast('Pagamento indisponível agora 😬');}
+}
+function openDownload(){ el('downProg').textContent=''; el('downSub').textContent=(ALBUM.fotos.length)+' fotos originais prontas.'; openModal('mDown'); }
+async function baixarTodas(){
+  var fotos=ALBUM.fotos||[];if(!fotos.length){toast('Sem fotos ainda');return;}
+  var prog=el('downProg');
+  for(var i=0;i<fotos.length;i++){
+    prog.textContent='Baixando '+(i+1)+' de '+fotos.length+'…';
+    var url=pubUrl(fotos[i].storage_path); // MASTER = original em alta
+    try{
+      var resp=await fetch(url);var blob=await resp.blob();
+      var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='foto-'+(i+1)+'.jpg';document.body.appendChild(a);a.click();
+      setTimeout(function(u){return function(){URL.revokeObjectURL(u)}}(a.href),4000);a.remove();
+    }catch(e){}
+    await new Promise(function(r){setTimeout(r,350);}); // espaça pra o navegador não bloquear
+  }
+  prog.textContent='Pronto! '+fotos.length+' fotos baixadas 💎';
+}
+
+/* ---------- moderação do dono ---------- */
+async function delFoto(id){
+  if(!confirm('Remover esta foto do álbum?'))return;
+  var key=adminKeyFor(ALBUM.slug);
+  if(!key){toast('Só o organizador remove fotos');return;}
+  try{
+    var r=await fetch(Q.SB_URL+'/functions/v1/album-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:ALBUM.slug,key:key,action:'delete_foto',foto_id:id})});
+    var j=await r.json().catch(function(){return {};});
+    if(!j.ok){toast('Não consegui remover 😬');return;}
+  }catch(e){toast('Não consegui remover 😬');return;}
+  ALBUM.fotos=(ALBUM.fotos||[]).filter(function(f){return f.id!==id;});
+  paintGallery();toast('Foto removida');
+}
+
+/* ---------- retorno do pagamento ---------- */
+async function handleReturn(){
+  var q;try{q=new URLSearchParams(location.search);}catch(_){return;}
+  if(q.get('pago')!=='ok')return;
+  toast('Confirmando seu pagamento... 💛');
+  for(var i=0;i<6;i++){
+    await new Promise(function(r){setTimeout(r,2000);});
+    var a=null;try{a=await apiGetAlbum(ALBUM?ALBUM.slug:ROUTE);}catch(_){}
+    if(a&&a.unlocked){ALBUM=a;try{history.replaceState(null,'',location.pathname+'#a='+a.slug);}catch(_){}await paintGallery();openDownload();return;}
+  }
+  toast('Pagamento em processamento — atualize em instantes 💛');
+}
+
+/* ---------- Service Worker ---------- */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(function(e){console.log('sw fail',e);});
+}
+
+/* ---------- boot ---------- */
+document.querySelectorAll('.modal-bg').forEach(function(bg){bg.addEventListener('click',function(e){if(e.target===bg)bg.classList.remove('open');});});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal-bg.open').forEach(function(m){m.classList.remove('open');});});
+try{self.__albumOffline=localStorage.getItem('__albumOffline')==='1';if(self.__albumOffline)syncOfflineToSW(true);}catch(_){} // persiste o modo teste entre reloads
+// reabrir o app é sinal forte de "tenta de novo agora": zera backoff e drena
+if(!self.__albumOffline){try{Q.retryNow().then(triggerPump);}catch(_){}}
+window.addEventListener('hashchange',function(){setRoute(location.hash);render();});
+(function(){try{var q=new URLSearchParams(location.search);var occ=q.get('occ'),src=q.get('src');if(occ||src)track(src==='seo'?'seo_land':'visit',{src:src||null,occ:occ||null});else track('visit',{});}catch(_){}})();
+setRoute(location.hash);render();
+</script>
+</body>
+</html>

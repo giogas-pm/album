@@ -1,0 +1,25 @@
+{
+  "name": "Álbum Coletivo — fotos da festa",
+  "short_name": "Álbum",
+  "description": "Junte as fotos de todo mundo da festa num álbum coletivo. Funciona com internet ruim.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1020",
+  "theme_color": "#0f1020",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20192%20192'%3E%3Crect%20width='192'%20height='192'%20rx='42'%20fill='%236c5ce7'/%3E%3Cg%20fill='%23fff'%3E%3Crect%20x='40'%20y='58'%20width='112'%20height='84'%20rx='12'%20fill='none'%20stroke='%23fff'%20stroke-width='9'/%3E%3Ccircle%20cx='96'%20cy='100'%20r='22'%20fill='none'%20stroke='%23fff'%20stroke-width='9'/%3E%3Crect%20x='78'%20y='44'%20width='36'%20height='18'%20rx='6'/%3E%3C/g%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20rx='112'%20fill='%236c5ce7'/%3E%3Cg%20fill='%23fff'%3E%3Crect%20x='106'%20y='154'%20width='300'%20height='224'%20rx='32'%20fill='none'%20stroke='%23fff'%20stroke-width='24'/%3E%3Ccircle%20cx='256'%20cy='266'%20r='58'%20fill='none'%20stroke='%23fff'%20stroke-width='24'/%3E%3Crect%20x='208'%20y='118'%20width='96'%20height='48'%20rx='16'/%3E%3C/g%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
