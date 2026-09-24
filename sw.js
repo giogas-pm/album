@@ -3,7 +3,7 @@
    mesmo com a aba fechada, quando a conexão voltar (Background Sync). */
 importScripts("album-queue.js");
 
-var CACHE = "album-shell-v2";
+var CACHE = "album-shell-v3";
 var SHELL = ["./", "./index.html", "./album-queue.js", "./manifest.json"];
 
 self.addEventListener("install", function (e) {
@@ -18,18 +18,18 @@ self.addEventListener("activate", function (e) {
   );
 });
 
-/* cache-first pro shell; rede pro resto (Supabase etc.) */
+/* rede primeiro pro shell (correções chegam na hora); cache só quando offline. Rede pro resto (Supabase etc.) */
 self.addEventListener("fetch", function (e) {
   var url = new URL(e.request.url);
   if (e.request.method !== "GET") return;
   if (url.origin === self.location.origin) {
     e.respondWith(
-      caches.match(e.request).then(function (hit) {
-        return hit || fetch(e.request).then(function (res) {
-          var copy = res.clone();
-          caches.open(CACHE).then(function (c) { try { c.put(e.request, copy); } catch (_) {} });
-          return res;
-        }).catch(function () { return caches.match("./index.html"); });
+      fetch(e.request, { cache: "no-cache" }).then(function (res) {
+        var copy = res.clone();
+        caches.open(CACHE).then(function (c) { try { c.put(e.request, copy); } catch (_) {} });
+        return res;
+      }).catch(function () {
+        return caches.match(e.request).then(function (hit) { return hit || caches.match("./index.html"); });
       })
     );
   }
