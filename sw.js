@@ -3,7 +3,7 @@
    mesmo com a aba fechada, quando a conexão voltar (Background Sync). */
 importScripts("album-queue.js");
 
-var CACHE = "album-shell-v1";
+var CACHE = "album-shell-v2";
 var SHELL = ["./", "./index.html", "./album-queue.js", "./manifest.json"];
 
 self.addEventListener("install", function (e) {

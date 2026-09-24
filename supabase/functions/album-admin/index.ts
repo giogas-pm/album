@@ -3,7 +3,8 @@
 // objetos no Storage (master + preview). Mesma receita do Muraí/Revelê (mural-admin).
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SVC = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const BUCKET = "album-fotos";
+const BUCKET = "album-fotos"; // previews (público)
+const BUCKET_ORIG = "album-orig"; // originais (privado)
 const H = { apikey: SVC, Authorization: "Bearer " + SVC, "Content-Type": "application/json" };
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -19,7 +20,7 @@ Deno.serve(async (req) => {
     const { slug, key, action, foto_id } = await req.json().catch(() => ({} as any));
     if (!slug || !key) return json({ ok: false, motivo: "faltam_dados" }, 400);
     const rows = await fetch(
-      `${SB_URL}/rest/v1/album_albuns?slug=eq.${encodeURIComponent(slug)}&select=id,admin_key`,
+      `${SB_URL}/rest/v1/album_albuns?slug=eq.${encodeURIComponent(slug)}&select=id,admin_key,unlocked`,
       { headers: H },
     ).then((r) => r.json());
     if (!rows.length) return json({ ok: false, motivo: "album_inexistente" }, 404);
@@ -33,10 +34,10 @@ Deno.serve(async (req) => {
         { headers: H },
       ).then((r) => r.json());
       if (fr.length) {
-        const prefixes = [fr[0].storage_path, fr[0].preview_path].filter(Boolean);
-        if (prefixes.length) {
-          await fetch(`${SB_URL}/storage/v1/object/${BUCKET}`, {
-            method: "DELETE", headers: H, body: JSON.stringify({ prefixes }),
+        for (const [bucket, path] of [[BUCKET_ORIG, fr[0].storage_path], [BUCKET, fr[0].preview_path]]) {
+          if (!path) continue;
+          await fetch(`${SB_URL}/storage/v1/object/${bucket}`, {
+            method: "DELETE", headers: H, body: JSON.stringify({ prefixes: [path] }),
           }).catch(() => {});
         }
       }
@@ -45,6 +46,22 @@ Deno.serve(async (req) => {
         { method: "DELETE", headers: { ...H, Prefer: "return=minimal" } },
       );
       return json({ ok: true });
+    }
+    if (action === "originals") {
+      // download em alta: só dono + álbum pago; links assinados de 1h no bucket privado
+      if (!rows[0].unlocked) return json({ ok: false, motivo: "nao_pago" }, 402);
+      const fs = await fetch(
+        `${SB_URL}/rest/v1/album_fotos?album_id=eq.${albumId}&select=storage_path&order=created_at.asc`,
+        { headers: H },
+      ).then((r) => r.json());
+      const paths = fs.map((f: any) => f.storage_path).filter(Boolean);
+      if (!paths.length) return json({ ok: true, urls: [] });
+      const signed = await fetch(`${SB_URL}/storage/v1/object/sign/${BUCKET_ORIG}`, {
+        method: "POST", headers: H, body: JSON.stringify({ expiresIn: 3600, paths }),
+      }).then((r) => r.json());
+      const urls = (Array.isArray(signed) ? signed : []).filter((x: any) => x.signedURL)
+        .map((x: any) => `${SB_URL}/storage/v1${x.signedURL}`);
+      return json({ ok: true, urls });
     }
     return json({ ok: false, motivo: "acao_desconhecida" }, 400);
   } catch (e) {

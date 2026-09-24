@@ -8,7 +8,8 @@
 
   var SB_URL = "https://diemqzngskmcuytkzjhr.supabase.co";
   var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpZW1xem5nc2ttY3V5dGt6amhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NDM0MDEsImV4cCI6MjA5ODQxOTQwMX0.w5-w8bU6qFQqIFBDOiNsUvOWbXqeOZSH6tveyLdADx0";
-  var BUCKET = "album-fotos";
+  var BUCKET = "album-fotos";      // previews (público, sem listagem)
+  var BUCKET_ORIG = "album-orig";  // originais (privado; download só via link assinado pós-pagamento)
   var SB_H = { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY };
 
   var DB_NAME = "album_q", DB_VER = 1, STORE = "photos";
@@ -59,15 +60,18 @@
   function offlineSim() { return !!scope.__albumOffline; }
 
   /* ---------- upload de um arquivo pro Storage (upsert = idempotente) ---------- */
-  function uploadObject(path, blob, contentType) {
+  function uploadObject(path, blob, contentType, bucket) {
     if (offlineSim()) return Promise.reject(new Error("offline (simulado)"));
-    return fetch(SB_URL + "/storage/v1/object/" + BUCKET + "/" + path, {
+    return fetch(SB_URL + "/storage/v1/object/" + (bucket || BUCKET) + "/" + path, {
       method: "POST",
-      headers: Object.assign({}, SB_H, { "Content-Type": contentType || "application/octet-stream", "x-upsert": "true" }),
+      headers: Object.assign({}, SB_H, { "Content-Type": contentType || "application/octet-stream" }),
       body: blob
     }).then(function (r) {
       if (r.ok) return true;
-      return r.text().then(function (t) { throw new Error("storage " + r.status + " " + t.slice(0, 120)); });
+      return r.text().then(function (t) {
+        if (/Duplicate|already exists/i.test(t)) return true; // retry de upload que já tinha chegado => sucesso (anon não sobrescreve)
+        throw new Error("storage " + r.status + " " + t.slice(0, 120));
+      });
     });
   }
 
@@ -101,7 +105,7 @@
     }
     if (!rec.masterDone) {
       chain = chain.then(function () {
-        return uploadObject(rec.slug + "/" + rec.id, rec.master, rec.masterType || "image/jpeg").then(function () {
+        return uploadObject(rec.slug + "/" + rec.id, rec.master, rec.masterType || "image/jpeg", BUCKET_ORIG).then(function () {
           rec.masterDone = true; return putRec(rec);
         });
       });
