@@ -28,13 +28,14 @@ Deno.serve(async (req) => {
   try {
     const [
       albuns_total, albuns_pagos, fotos_total,
-      ev_visit, ev_seoland,
+      ev_visit, ev_eng, ev_seoland,
       ev_album_created, ev_foto, ev_paywall, ev_checkout,
     ] = await Promise.all([
       countOf("album_albuns"),
       countOf("album_albuns?unlocked=eq.true"),
       countOf("album_fotos"),
       countOf("album_eventos?evento=eq.visit"),
+      countOf("album_eventos?evento=eq.engaged"),
       countOf("album_eventos?evento=eq.seo_land"),
       countOf("album_eventos?evento=eq.album_created"),
       countOf("album_eventos?evento=eq.foto_added"),
@@ -50,6 +51,7 @@ Deno.serve(async (req) => {
       fotos_total,
       funil: {
         visit: ev_visit,
+        engaged: ev_eng,
         seo_land: ev_seoland,
         album_created: ev_album_created,
         foto_added: ev_foto,
